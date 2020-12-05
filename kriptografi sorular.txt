@@ -1,4 +1,5 @@
 1. Bu sistemin ait olduğu çalışma modunun adı nedir?
+    ECB modu (Electronic Code Book Mode)
 
 2. Sistemin savunmasız kalmasına neden olabilecek saldırı türleri nelerdir?
 
@@ -19,7 +20,7 @@
         Bütünlük : sadece anahtar sahibi girdiği şifreli veriyi deşifre edebilir.
         Erişilebilirlik : istendiğinde girilen veri şifrelenebilir ve anahtarlar ile şifrelenmiş veri deşifre edilebilir.
 
-5.Şifreli metninşifresini çözdükten sonra orijinaldüz metninasıl elde edebiliriz? çözülmez ise sebebinedir?
+-5. Şifreli metnin şifresini çözdükten sonra orijinal düz metni nasıl elde edebiliriz? çözülmez ise sebebinedir?
 
     buna da bakar mısın bir?
 
@@ -27,4 +28,4 @@
 
     (soru 3 teki cevabın benzeri) deşifre ederken belli bir anahtar için belli deneme hakları tanımlanmalı
 
-7. Lütfen şifrelenmiş fotoğrafı görüntüleyin ve orijinal olanlarla karşılaştırmak için şifreli metni yazdırın.
+-7. Lütfen şifrelenmiş fotoğrafı görüntüleyin ve orijinal olanlarla karşılaştırmak için şifreli metni yazdırın.
