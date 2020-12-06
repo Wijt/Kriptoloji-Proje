@@ -7,9 +7,9 @@ import random
 
 kacSifirEklendi=0
 
-anahtar1 = [1,2,3,4]
+anahtar1 = {1:1, 2:2, 3:3, 4:4}
 anahtar2 = "10110011000010011011101001100010001100100000100001101110010100100100010110000001100110000110010000010001001011001100101001110000"
-anahtar3 = [1,2,3,4,5,6,7,8]
+anahtar3 = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8}
 
 def main():
     metin = "hello"
@@ -19,21 +19,43 @@ def main():
     print("Binary Karşılığı:", butunBinary)
     splitted = binarySplit256(butunBinary) 
     print("\n\n....Encrypt işlemi başlıyor....")
-    sifreliMetin = encrypt(splitted)
-    decrypt(sifreliMetin)
+    
+    global anahtar1,anahtar2,anahtar3
+    anahtar1seed = [1,2,3,4]
+    random.shuffle(anahtar1seed)
+    for i in anahtar1.keys():
+        anahtar1[i] = anahtar1seed.pop();
+
+    anahtar3seed = [1,2,3,4,5,6,7,8]
+    random.shuffle(anahtar3seed)
+    for i in anahtar3.keys():
+        anahtar3[i] = anahtar3seed.pop();
+
+    #sifreliMetin = encrypt(splitted)
+    #decrypt(sifreliMetin)
 
 def encrypt(splittedList):
     global anahtar1,anahtar2,anahtar3
-    random.shuffle(anahtar1)
-    random.shuffle(anahtar3)
+
+    anahtar1seed = [1,2,3,4]
+    random.shuffle(anahtar1seed)
+    for i in anahtar1.keys():
+        anahtar1[i] = anahtar1seed.pop();
+
+    anahtar3seed = [1,2,3,4,5,6,7,8]
+    random.shuffle(anahtar3seed)
+    for i in anahtar3.keys():
+        anahtar3[i] = anahtar3seed.pop();
+
     reversedList = reverseBits(splittedList)
     print("Tersine çevrildi:\n", "".join(reversedList),sep="")
-    shuffled = shuffleMe(reversedList, anahtar1)
+    shuffled = shuffleMe(reversedList, anahtar1, False)
     print("\nİlk karıştırma:\n", "".join(shuffled),sep="")
+    pprint(shuffleMe(shuffled, anahtar1, True))
     anahtar2 = rand_key(128)
     xordanGecmis = xor(shuffled, anahtar2)
     print("\nBloklar XOR'dan geçirildi:\n", "".join(xordanGecmis),sep="")
-    shuffled2 = shuffleMe(xordanGecmis, anahtar3)
+    shuffled2 = shuffleMe(xordanGecmis, anahtar3, False)
     print("\nBloklar tekrar karıştırıldı:\n", "".join(shuffled2),sep="")
     tumMetin = ''.join(shuffled2)
     print("\nBinary olarak şifreli metin:\n", "".join(tumMetin),sep="")
@@ -47,7 +69,7 @@ def decrypt(sifreliMetin):
     print("\n\n\n\nDecrypt işlemine başlanıyor........\n")
     pprint(sifreliMetin)
     print("İkinci karıştırma geri alınıyor:")
-    shuffled2 = shuffleMe(sifreliMetin, anahtar1)
+    shuffled2 = shuffleMe(sifreliMetin, anahtar3, True)
     print("Sonuç: ", "".join(shuffled2),"\n\n", sep="")
     pprint(shuffled2)
     print("XOR geri alınıyor:\n")
@@ -56,13 +78,13 @@ def decrypt(sifreliMetin):
     print("Sonuç:\n", "".join(xordanGecmis),"\n\n", sep="")
     
     print("\nİlk karıştırma geri alınıyor:\n")
-    shuffled = shuffleMe(xordanGecmis, anahtar3)
+    shuffled = shuffleMe(xordanGecmis, anahtar1, True)
     print("Sonuç:\n", "".join(shuffled2),"\n\n", sep="")
 
     print("\nBitleri çevirme işlemi geri alınıyor:\n")
     reversedBits = reverseBits(shuffled)
     print("Sonuç:\n", "".join(reversedBits),"\n\n", sep="")
-
+    
 def reverseBits(l):
     newList=[]
     for i in l:
@@ -76,15 +98,26 @@ def rand_key(p):
         key1 += temp 
     return(key1) 
 
-def shuffleMe(liste, sira):
-    yeniListe=[]
-    for i in range(0,len(liste)):
-        esitParcaliBlok = wrap(liste[i], int(256/len(sira)))
-        yeniDizilim = esitParcaliBlok.copy()
-        for j in range(0,len(esitParcaliBlok)):
-            yeniDizilim[(sira[j]-1)] = esitParcaliBlok[j]
-        yeniListe.append("".join(yeniDizilim))
-    return yeniListe
+def shuffleMe(liste, sira, duzelt):
+    if not duzelt:
+        yeniListe=[]
+        for i in range(0,len(liste)):
+            esitParcaliBlok = wrap(liste[i], int(256/len(sira)))
+            yeniDizilim = esitParcaliBlok.copy()
+            for i in sira.keys():
+                yeniDizilim[i-1] = esitParcaliBlok[sira[i]-1]
+            yeniListe.append("".join(yeniDizilim))
+        return yeniListe
+    else:
+        yeniListe=[]
+        for i in range(0,len(liste)):
+            esitParcaliBlok = wrap(liste[i], int(256/len(sira)))
+            yeniDizilim = esitParcaliBlok.copy()
+            siralianahtar = dict(sorted(sira.items(), key=lambda item: item[1]))
+            for i in siralianahtar.keys():
+                yeniDizilim[siralianahtar[i]-1] = esitParcaliBlok[i-1]
+            yeniListe.append("".join(yeniDizilim))
+        return yeniListe
     
 def xor(liste, key):
     keyUzunluk = len(key)
@@ -160,26 +193,9 @@ def flatten(binaryArr):
     global kacSifirEklendi
     binaryArr[-1] = binaryArr[-1][kacSifirEklendi:]
     return "".join(binaryArr)
-    """
-    sonPart = binaryArr[-1]
-    sondanOnceki= binaryArr[len(binaryArr)-2]
-    print(wrap(sondanOnceki, maksBitLen))
-
-    bolunmusSonPart = wrap(sonPart[::-1], maksBitLen)
-    bolunmusSonPart = [i for i in bolunmusSonPart if i != ('0'*maksBitLen)] # 0000000 lar silindi
-    sonuncuUzunluk = len(bolunmusSonPart[-1])
-    if not ('1' in bolunmusSonPart[-1] ):
-        del bolunmusSonPart[-1]
-    bolunmusSonPart = reverseBits(bolunmusSonPart)
-    if('1' in bolunmusSonPart[-1] ): # and len(bolunmusSonPart[-1])!=maksBitLen
-        bolunmusSonPart[-1] = bolunmusSonPart[-1][-sonuncuUzunluk-1:]
-    sifirlarSilinmisSon = "".join(bolunmusSonPart[::-1])
-    
-    binaryArr[-1] = sifirlarSilinmisSon
-    """
     
 
 main()
 
-# 1101011101111011001001010001011001111110110001100110110001110010000000000000000000000000000000001101101011111001100000001111010011111111111111111111111111111111111101010111010001000101011010000010111110001101110001011001101011011010111110011000000011110100
-# 11010001100101110110011011001101111
+# 0001101001110001100010101100100110011100000111010110011101011111000110000101101011110101111000011001000001111100000111111001011011100101100011100111010100110110000000111110001010011000101000001001100111101111001111010101100011100111101001010000101000011110
+# 01100111000001110101100111010111111001100111101111001111010101100010010000011111000001111110010110
