@@ -12,7 +12,8 @@ anahtar2 = "10110011000010011011101001100010001100100000100001101110010100100100
 anahtar3 = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8}
 
 def main():
-    metin = "hello"
+    global kacSifirEklendi
+    metin = input("Metninizi giriniz: ")
     binaryDizisi, maksUzunluk = strToBin(metin)
     print("Şifrelenecek Metin:", metin)
     butunBinary = ''.join(map(str, binaryDizisi.tolist())) 
@@ -31,27 +32,19 @@ def main():
     for i in anahtar3.keys():
         anahtar3[i] = anahtar3seed.pop();
 
-    #sifreliMetin = encrypt(splitted)
-    #decrypt(sifreliMetin)
+    sifreliMetin = encrypt(splitted)
+    sifirekliSifresiz = decrypt(sifreliMetin)
+    sifirsilinik = flatten(sifirekliSifresiz)
+    nparray= np.array(list(map(int, sifirsilinik)))
+    turkceKarsilik = binToStr(nparray, maksUzunluk)
+    print("Şifresiz metniniz: ", turkceKarsilik)
 
 def encrypt(splittedList):
     global anahtar1,anahtar2,anahtar3
-
-    anahtar1seed = [1,2,3,4]
-    random.shuffle(anahtar1seed)
-    for i in anahtar1.keys():
-        anahtar1[i] = anahtar1seed.pop();
-
-    anahtar3seed = [1,2,3,4,5,6,7,8]
-    random.shuffle(anahtar3seed)
-    for i in anahtar3.keys():
-        anahtar3[i] = anahtar3seed.pop();
-
     reversedList = reverseBits(splittedList)
     print("Tersine çevrildi:\n", "".join(reversedList),sep="")
     shuffled = shuffleMe(reversedList, anahtar1, False)
     print("\nİlk karıştırma:\n", "".join(shuffled),sep="")
-    pprint(shuffleMe(shuffled, anahtar1, True))
     anahtar2 = rand_key(128)
     xordanGecmis = xor(shuffled, anahtar2)
     print("\nBloklar XOR'dan geçirildi:\n", "".join(xordanGecmis),sep="")
@@ -67,23 +60,21 @@ def encrypt(splittedList):
 
 def decrypt(sifreliMetin):
     print("\n\n\n\nDecrypt işlemine başlanıyor........\n")
-    pprint(sifreliMetin)
     print("İkinci karıştırma geri alınıyor:")
     shuffled2 = shuffleMe(sifreliMetin, anahtar3, True)
-    print("Sonuç: ", "".join(shuffled2),"\n\n", sep="")
-    pprint(shuffled2)
+    print("Sonuç: ", "".join(shuffled2),"\n", sep="")
     print("XOR geri alınıyor:\n")
     xordanGecmis = xor(shuffled2, anahtar2)
-    pprint(xordanGecmis)
-    print("Sonuç:\n", "".join(xordanGecmis),"\n\n", sep="")
+    print("Sonuç:\n", "".join(xordanGecmis),"\n", sep="")
     
     print("\nİlk karıştırma geri alınıyor:\n")
     shuffled = shuffleMe(xordanGecmis, anahtar1, True)
-    print("Sonuç:\n", "".join(shuffled2),"\n\n", sep="")
+    print("Sonuç:\n", "".join(shuffled2),"\n", sep="")
 
     print("\nBitleri çevirme işlemi geri alınıyor:\n")
     reversedBits = reverseBits(shuffled)
-    print("Sonuç:\n", "".join(reversedBits),"\n\n", sep="")
+    print("Sonuç:\n", "".join(reversedBits),"\n", sep="")
+    return reversedBits
     
 def reverseBits(l):
     newList=[]
@@ -196,6 +187,3 @@ def flatten(binaryArr):
     
 
 main()
-
-# 0001101001110001100010101100100110011100000111010110011101011111000110000101101011110101111000011001000001111100000111111001011011100101100011100111010100110110000000111110001010011000101000001001100111101111001111010101100011100111101001010000101000011110
-# 01100111000001110101100111010111111001100111101111001111010101100010010000011111000001111110010110
