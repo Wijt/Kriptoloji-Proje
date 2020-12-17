@@ -1,27 +1,28 @@
 import pandas as pd
 import numpy as np
+from PIL import Image
 from textwrap import wrap
 from pprint import pprint
 from random import shuffle
 import random
+from numpy import asarray
 
 kacSifirEklendi=0
-
+maksUzunluk=0
+imgshape=0
 anahtar1 = {1:1, 2:2, 3:3, 4:4}
 anahtar2 = "10110011000010011011101001100010001100100000100001101110010100100100010110000001100110000110010000010001001011001100101001110000"
 anahtar3 = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8}
 
 def main():
-    global kacSifirEklendi
-    metin = input("Metninizi giriniz: ")
-    binaryDizisi, maksUzunluk = strToBin(metin)
+    global kacSifirEklendi, maksUzunluk
+    resimAdi = "fotograf.jpg"#input("Resim ismi giriniz: ")
+    binaryDizisi, maksUzunluk = resimToBin(resimAdi)
 
     butunBinary = ''.join(map(str, binaryDizisi.tolist())) 
-    print("Binary Karşılığı:", butunBinary)
-    
+    binToImage(butunBinary, maksUzunluk, "Orjinal")
     splitted = binarySplit256(butunBinary) 
     
-    print("\n\n....Encrypt işlemi başlıyor....")
     
     global anahtar1,anahtar2,anahtar3
     anahtar1 = anahtarOlusturucu([1,2,3,4])
@@ -30,10 +31,7 @@ def main():
 
     sifreliMetin = encrypt(splitted)
     sifirEkliSifresiz = decrypt(sifreliMetin)
-    sifirSilinik = flatten(sifirEkliSifresiz)
-    nparray= np.array(list(map(int, sifirSilinik)))
-    turkceKarsilik = binToStr(nparray, maksUzunluk)
-    print("Şifresiz metniniz: ", turkceKarsilik)
+
 
 def anahtarOlusturucu(seed):
     dict={}
@@ -44,39 +42,29 @@ def anahtarOlusturucu(seed):
     return dict
 
 def encrypt(splittedList):
-    global anahtar1,anahtar2,anahtar3
+    global anahtar1,anahtar2,anahtar3,maksUzunluk
     reversedList = reverseBits(splittedList)
-    print("Tersine çevrildi:\n", "".join(reversedList), sep="")
+    binToImage("".join(reversedList), maksUzunluk, "Ters Çevrilmiş")
     shuffled = shuffleMe(reversedList, anahtar1, False)
-    print("\nİlk karıştırma:\n", "".join(shuffled), sep="")
+    binToImage("".join(shuffled), maksUzunluk, "İlk Karıştırma")
     xordanGecmis = xor(shuffled, anahtar2)
-    print("\nBloklar XOR'dan geçirildi:\n", "".join(xordanGecmis), sep="")
+    binToImage("".join(xordanGecmis), maksUzunluk, "XOR Yapılmış")
     shuffled2 = shuffleMe(xordanGecmis, anahtar3, False)
-    print("\nBloklar tekrar karıştırıldı:\n", "".join(shuffled2), sep="")
+    binToImage("".join(shuffled2), maksUzunluk, "İkinci Karıştırma")
     tumMetin = ''.join(shuffled2)
-    print("\nBinary olarak şifreli metin:\n", "".join(tumMetin), sep="")
     bitarray=list(map(int, tumMetin))
     npbitArray=np.array(bitarray)
-    print("\nŞifreli metnin unicode karşılığı:\n", binToStr(npbitArray,8), sep="")
-    print("\n\n---------------------Şifrelemede kullanılan anahtarlar: \n\n1. karıştırma anahtarı: ", list(anahtar1.values()), "\nXOR key: ", anahtar2, "\n2. karıştırma anahtarı: ", list(anahtar3.values()), sep="")
     return shuffled2
 
 def decrypt(sifreliMetin):
-    print("\n\n\n\nDecrypt işlemine başlanıyor........\n")
-    print("İkinci karıştırma geri alınıyor:")
     shuffled2 = shuffleMe(sifreliMetin, anahtar3, True)
-    print("Sonuç: ", "".join(shuffled2),"\n", sep="")
-    print("XOR geri alınıyor:\n")
+    binToImage("".join(shuffled2), maksUzunluk, "2. karıştırma geri alındı")
     xordanGecmis = xor(shuffled2, anahtar2)
-    print("Sonuç:\n", "".join(xordanGecmis),"\n", sep="")
-    
-    print("\nİlk karıştırma geri alınıyor:\n")
+    binToImage("".join(xordanGecmis), maksUzunluk, "XOR geri alındı")
     shuffled = shuffleMe(xordanGecmis, anahtar1, True)
-    print("Sonuç:\n", "".join(shuffled),"\n", sep="")
-
-    print("\nBitleri çevirme işlemi geri alınıyor:\n")
+    binToImage("".join(shuffled), maksUzunluk, "İlk karıştırma geri alındı")
     reversedBits = reverseBits(shuffled)
-    print("Sonuç:\n", "".join(reversedBits),"\n", sep="")
+    binToImage("".join(reversedBits), maksUzunluk, "Bitleri ters çevirme geri alındı")
     return reversedBits
     
 def reverseBits(l):
@@ -155,13 +143,29 @@ def Binary2Decimal(Array, NumberOfBits):
         DecimalArray.append(DecimalNum)
     return np.array(DecimalArray)
 
-def strToBin(metin):
-    metinDecimal = list(map(ord, metin))
-    return Decimal2Binary(np.array(metinDecimal))
+def resimToBin(resimName):
+    global imgshape
+    img = Image.open(resimName)
+    imgMat = asarray(img)
+    imgshape = imgMat.shape
+    ImgArray = imgMat.reshape(1,imgMat.size)[0]
+    return Decimal2Binary(ImgArray)
 
 def binToStr(binaryDizisi, maksByteLen):
     decimalArr = Binary2Decimal(binaryDizisi, maksByteLen)
     return ''.join(list(map(chr, decimalArr)))
+
+def binToImage(binaryDizisi, maksByteLen, title):
+    global imgshape
+    bitarray=list(map(int, binaryDizisi))
+    del bitarray[0:kacSifirEklendi]
+    npbitArray=np.array(bitarray)
+    decimalArr = Binary2Decimal(npbitArray, maksByteLen)
+    img2mat = decimalArr.reshape(imgshape)
+    img2mat = img2mat.astype(np.uint8)
+    img = Image.fromarray(img2mat)
+    img.show(title="x")
+    return img
 
 def binarySplit256(binaryArr):
     global kacSifirEklendi
